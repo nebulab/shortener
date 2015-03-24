@@ -68,8 +68,10 @@ class Shortener::ShortenedUrl < ActiveRecord::Base
 
     count = 0
     begin
-      self.unique_key = generate_unique_key
-      super()
+      transaction(requires_new: true) do
+        self.unique_key = generate_unique_key
+        super()
+      end
     rescue ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid => err
       if (count +=1) < 5
         logger.info("retrying with different unique key")
